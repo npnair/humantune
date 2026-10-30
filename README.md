@@ -79,6 +79,10 @@ node tests/test.js
 
 No accounts, tracking or ads. Your settings and marks stay in your browser. Only the name of the artist currently playing is sent to MusicBrainz to calculate the score. See [PRIVACY.md](PRIVACY.md).
 
+## License
+
+[MIT](LICENSE): free to use, modify and share, as long as the copyright notice is kept.
+
 ## Roadmap
 
 - An audio-based detector as an extra signal in the score
