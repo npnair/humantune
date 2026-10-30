@@ -1,3 +1,6 @@
+<img width="270" height="281" alt="image" src="https://github.com/user-attachments/assets/668784b1-8961-4014-840c-3488a4a56b89" />
+
+
 # HumanTune: AI Song Blocker
 
 A Chrome extension that spots AI-generated songs in the Spotify Web Player and skips them while you listen. Switch it on to block AI music, or off to let everything play.
