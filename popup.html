@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --green:#1db954; --bg:#121212; --card:#1f1f1f; --muted:#a7a7a7; --line:#2e2e2e; }
+  * { box-sizing:border-box; }
+  body { margin:0; width:340px; background:var(--bg); color:#fff; font:13px/1.45 system-ui, sans-serif; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); }
+  h1 { font-size:15px; margin:0; display:flex; align-items:center; gap:8px; }
+  h1 img { width:20px; height:20px; }
+  section { padding:12px 16px; border-bottom:1px solid var(--line); }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 8px; }
+  .muted { color:var(--muted); }
+  .switch { position:relative; width:40px; height:22px; flex:none; }
+  .switch input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; inset:0; background:#535353; border-radius:22px; cursor:pointer; transition:.2s; }
+  .slider:before { content:""; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  input:checked + .slider { background:var(--green); }
+  input:checked + .slider:before { transform:translateX(18px); }
+  .status { font-size:12px; margin-top:-4px; padding:0 16px 10px; color:var(--muted); border-bottom:1px solid var(--line); }
+  .track { background:var(--card); border-radius:8px; padding:10px; }
+  .track .t { font-weight:600; }
+  .row { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  button { background:#2a2a2a; color:#fff; border:1px solid #3a3a3a; border-radius:16px; padding:5px 11px; font:inherit; font-size:12px; cursor:pointer; }
+  button:hover { border-color:#777; }
+  button.danger { border-color:#7a2e2e; }
+  button.ok { border-color:#25603a; }
+  input[type=text], input[type=url] { width:100%; background:#2a2a2a; border:1px solid #3a3a3a; color:#fff; border-radius:6px; padding:6px 8px; font:inherit; }
+  .inline { display:flex; gap:6px; }
+  .inline input { flex:1; }
+  ul { list-style:none; padding:0; margin:0; max-height:130px; overflow:auto; }
+  li { display:flex; justify-content:space-between; gap:8px; padding:4px 0; border-bottom:1px solid #1a1a1a; }
+  li .x { background:none; border:none; color:var(--muted); padding:0 4px; }
+  .msg { font-size:12px; margin-top:6px; min-height:16px; }
+  details summary { cursor:pointer; color:var(--muted); font-size:12px; margin-top:8px; }
+  .label { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-top:10px; }
+  button.subtle { font-size:11px; padding:4px 9px; }
+  .scorehead { display:flex; gap:12px; align-items:center; }
+  .ring { flex:none; line-height:0; }
+  .verdict { min-width:0; }
+  .verdict .lvl { font-weight:700; margin-top:2px; }
+  .reasons { margin-top:8px; max-height:none; }
+  .reasons li { justify-content:flex-start; border:none; padding:2px 0; font-size:12px; color:#d0d0d0; }
+  .reasons .up { color:#ff8a3d; width:12px; flex:none; } .reasons .down { color:#1db954; width:12px; flex:none; }
+  .note { font-size:11px; color:var(--muted); margin-top:4px; }
+  .setting { display:flex; gap:8px; align-items:flex-start; font-size:12px; }
+  .setting input { margin-top:2px; accent-color:var(--green); }
+  select { background:#2a2a2a; color:#fff; border:1px solid #3a3a3a; border-radius:6px; padding:2px 4px; font:inherit; }
+  select:disabled { opacity:.5; }
+  .tag { font-size:10px; color:var(--muted); border:1px solid #3a3a3a; border-radius:8px; padding:0 5px; margin-left:4px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1><img src="icons/icon48.png" alt="">HumanTune</h1>
+    <label class="switch" title="Block AI songs">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </header>
+  <div class="status" id="status"></div>
+
+  <section>
+    <h2>Now playing</h2>
+    <div id="now" class="track muted">Open the Spotify Web Player to see the current track.</div>
+  </section>
+
+  <section>
+    <h2>Settings</h2>
+    <label class="setting">
+      <input type="checkbox" id="skipSuspected">
+      <span>Also skip songs that look AI even if nobody marked them, when the score is at least
+        <select id="threshold"><option value="60">60</option><option value="70">70</option><option value="80">80</option><option value="90">90</option></select>
+        <br><span class="muted">Off by default: the score is a guess and can flag small independent artists.</span></span>
+    </label>
+  </section>
+
+  <section>
+    <h2>Recently skipped</h2>
+    <ul id="log"></ul>
+  </section>
+
+  <section>
+    <h2>Blocked songs (<span id="songCount">0</span>)</h2>
+    <details>
+      <summary>Show list</summary>
+      <ul id="songBlocklist"></ul>
+    </details>
+    <details>
+      <summary>Songs marked "Not AI" (<span id="songAllowCount">0</span>)</summary>
+      <ul id="songAllowlist"></ul>
+    </details>
+  </section>
+
+  <section>
+    <h2>Blocked artists (<span id="count">0</span>)</h2>
+    <div class="inline">
+      <input type="text" id="addName" placeholder="Add an artist name">
+      <button id="addBtn">Add</button>
+    </div>
+    <details>
+      <summary>Show list</summary>
+      <ul id="blocklist"></ul>
+    </details>
+    <details>
+      <summary>Import a shared list from a URL</summary>
+      <div class="inline" style="margin-top:6px">
+        <input type="url" id="importUrl" placeholder="https://raw.githubusercontent.com/...">
+        <button id="importBtn">Import</button>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:4px">Plain text (one artist per line) or a JSON array, from GitHub raw or Gist.</div>
+    </details>
+    <details>
+      <summary>Marked "Not AI" (<span id="allowCount">0</span>)</summary>
+      <ul id="allowlist"></ul>
+    </details>
+    <div class="msg" id="msg"></div>
+  </section>
+
+  <script src="lib/core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

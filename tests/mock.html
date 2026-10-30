@@ -1,0 +1,62 @@
+<!doctype html>
+<html><body style="background:#000;color:#fff">
+<!-- Mimics the Spotify Web Player's now-playing bar (data-testid hooks). -->
+<footer>
+  <div data-testid="now-playing-widget" style="display:flex;align-items:center;gap:8px">
+    <div>
+      <a data-testid="context-item-link" id="tlink" href="#"><span data-testid="context-item-info-title"></span></a>
+      <div data-testid="context-item-info-artists" id="artists"></div>
+    </div>
+  </div>
+  <button data-testid="control-button-playpause" id="pp" aria-label="Pause">Pause</button>
+  <button data-testid="control-button-skip-forward" id="skip">Next</button>
+</footer>
+<script>
+  // [title, [[artist, artistId]...], trackId]
+  const queue = [
+    ["Human Song", [["Real Person", "AAA111"]], "TRK0"],
+    ["AI Track One", [["The Velvet Sundown", "VVV999"]], "TRK1"],
+    ["Another Human Song", [["Real Person", "AAA111"]], "TRK2"],
+    ["Collab Track", [["Real Person", "AAA111"], ["velvet sundown", "VVV999"]], "TRK3"],
+    ["Last Song", [["Someone Else", "BBB222"]], "TRK4"],
+    ["Real Person AI Song", [["Real Person", "AAA111"]], "TRK5"],
+    ["Final Song", [["Real Person", "AAA111"]], "TRK6"],
+    ["Human Song - Remastered 2014", [["Real Person", "AAA111"]], "TRK7"],
+    ["Mystery Track", [["Ghost Artist", "GGG333"]], "TRK8"],
+    ["Padding Song", [["Real Person", "AAA111"]], "TRK9"]
+  ];
+  let i = 0, playing = true, skipDisabled = false;
+  function show() {
+    const [title, artists, tid] = queue[i];
+    document.querySelector('[data-testid="context-item-info-title"]').textContent = title;
+    // Spotify links the title to the album with the track highlighted.
+    document.getElementById("tlink").setAttribute("href", "/album/ALB" + i + "?highlight=spotify:track:" + tid);
+    const box = document.getElementById("artists");
+    box.replaceChildren();
+    artists.forEach(([name, id], k) => {
+      const wrap = document.createElement("span");
+      wrap.setAttribute("data-testid", "context-item-info-artist");
+      const a = document.createElement("a");
+      a.href = "/artist/" + id; a.textContent = name;
+      wrap.append(a);
+      box.append(wrap);
+      if (k < artists.length - 1) box.append(", ");
+    });
+  }
+  function setPlaying(p) {
+    playing = p;
+    const b = document.getElementById("pp");
+    b.setAttribute("aria-label", p ? "Pause" : "Play");
+    b.textContent = p ? "Pause" : "Play";
+  }
+  window.mock = {
+    next() { i = Math.min(i + 1, queue.length - 1); setPlaying(true); show(); },
+    jumpTo(n) { i = n; setPlaying(true); show(); },
+    current() { return { title: queue[i][0], i, playing }; },
+    setSkipDisabled(d) { skipDisabled = d; document.getElementById("skip").disabled = d; }
+  };
+  document.getElementById("skip").onclick = () => { if (!skipDisabled) window.mock.next(); };
+  document.getElementById("pp").onclick = () => setPlaying(!playing);
+  show();
+</script>
+</body></html>
