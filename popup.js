@@ -261,6 +261,15 @@
     }
   };
 
+  // Refresh when background.js finishes an artist lookup (it saves "mb:" keys),
+  // so the popup doesn't stay stuck on "Looking up the artist…".
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area !== "local") return;
+    if (!Object.keys(changes).some((k) => k.startsWith("mb:"))) return;
+    await loadCurrentTrack();
+    render();
+  });
+  
   (async () => {
     await render();
     await loadCurrentTrack();
